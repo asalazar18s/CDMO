@@ -42,7 +42,7 @@ def solve_model(instance_name, model_file, solver_str, timeout):
     model = Model(model_file)
     solver = Solver.lookup(solver_str)
     
-    dzn_file_path = f"Converted_Instances/{instance_name}.dzn"
+    dzn_file_path = f"cp/converted_Instances/{instance_name}.dzn"
     
     num_couriers, num_load, courier_capacity, load_size, dist_matrix = None, None, None, None, []
 
@@ -147,12 +147,12 @@ if not os.path.exists(dzn_directory):
 if not os.path.exists(result_directory):
     os.makedirs(result_directory)
 
-instance_name = 'inst02'
-dat_file_path = os.path.join(dat_directory, f"{instance_name}.dat")
-dzn_file_path = os.path.join(dzn_directory, f"{instance_name}.dzn")
-convert_dat_to_dzn(dat_file_path, dzn_file_path)
+instance_name = 'inst01'
+# dat_file_path = os.path.join(dat_directory, f"{instance_name}.dat")
+# dzn_file_path = os.path.join(dzn_directory, f"{instance_name}.dzn")
+# convert_dat_to_dzn(dat_file_path, dzn_file_path)
 
-model_file = "new_model/sb_heu.mzn"
+model_file = "cp/fixed_models/model.mzn"
 solver_str = "gecode"
 timeout = datetime.timedelta(minutes=5)
 
@@ -171,6 +171,7 @@ def main():
         }
     except Exception as e:
         print(f"Error processing instance {instance_name}: {e}")
+        print(Exception)
         output = {
             solver_str: {
                 "time": 0,
