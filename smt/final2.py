@@ -1,38 +1,8 @@
 from z3 import *
+from utils import utils_SMT 
 
-# # Problem Parameters
-# num_couriers = 2  # Number of couriers
-# num_load = 6      # Number of loads
-# courier_capacity = [15, 10]  # Capacity of each courier
-# load_size = [3, 2, 6, 5, 4, 4]  # Size of each load
-
-# distance = [  # Distance matrix (7 x 7), where index 6 is the origin (Distribution Point 7)
-#     [0, 3, 4, 5, 6, 6, 2],  # Distribution Point 1
-#     [3, 0, 1, 4, 5, 7, 3],  # Distribution Point 2
-#     [4, 1, 0, 5, 6, 6, 4],  # Distribution Point 3
-#     [5, 4, 5, 0, 3, 3, 2],  # Distribution Point 4
-#     [6, 5, 6, 3, 0, 2, 4],  # Distribution Point 5
-#     [6, 7, 6, 3, 2, 0, 4],  # Distribution Point 6
-#     [2, 3, 4, 3, 4, 4, 0]   # Origin (Distribution Point 7)
-# ]
-
-num_couriers = 6
-num_load = 9
-courier_capacity = [190, 185, 185, 190, 195, 185]
-load_size = [11, 11, 23, 16, 2, 1, 24, 14, 20]
-distance_flat = [ 0, 199, 119, 28, 179, 77, 145, 61, 123, 87,
-   199, 0, 81, 206, 38, 122, 55, 138, 76, 113,
-   119, 81, 0, 126, 69, 121, 26, 117, 91, 32,
-   28, 206, 126, 0, 186, 84, 152, 68, 130, 94,
-   169, 38, 79, 176, 0, 92, 58, 108, 46, 98,
-   77, 122, 121, 84, 102, 0, 100, 16, 46, 96,
-   145, 55, 26, 152, 58, 100, 0, 91, 70, 58,
-   61, 138, 113, 68, 118, 16, 91, 0, 62, 87,
-   123, 76, 91, 130, 56, 46, 70, 62, 0, 66,
-   87, 113, 32, 94, 94, 96, 58, 87, 66, 0 ]
-
-# Convert the flattened distance list into a 2D list (10x10)
-distance = [distance_flat[i*10:(i+1)*10] for i in range(10)]
+# Fetch problem parameters
+num_couriers, num_load, courier_capacity, load_size, distance = utils_SMT.read_dat_file("Instances/inst01.dat")
 
 # Initialize the Z3 Solver
 solver = Solver()
