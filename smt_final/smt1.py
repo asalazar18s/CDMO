@@ -2,9 +2,11 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
-    start_time = time.time() 
+def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry, instance):
+    
+    start_time = time.time()
 
+    model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
     lower_bound, upper_bound = compute_bounds(D_matrix, ITEMS, m)
     print(f"Computed Lower Bound: {lower_bound}")
     print(f"Computed Upper Bound: {upper_bound}")
@@ -86,6 +88,8 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
         # Count how many items are assigned to courier i
         assigned_count_i = Sum([If(x[i, j], 1, 0) for j in range(n)])
         
+        solver.add(assigned_count_i >= 1)
+
         # If courier i has at least one assigned item, it leaves the origin exactly once...
         solver.add(
             Sum([If(y[i, origin, v], 1, 0) for v in range(n)]) ==
@@ -124,15 +128,14 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
     solver.add(D >= lower_bound)
 
     # Uncomment the following line if you want to enforce the upper bound
-    # solver.add(D <= upper_bound)
+    solver.add(D <= upper_bound)
 
     ####################################
     # 7) Objective: minimize D
     ####################################
     # Set a 5-minute timeout (300,000 milliseconds)
-    # solver.set(timeout=300000)
+    solver.set(timeout=300000)
     obj = solver.minimize(D)
-
     # We'll set M to n (the total number of items).
     M = n
 
@@ -164,6 +167,7 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
 
     # Solve
     result = solver.check()
+    assigned_matrix = []
     if result == sat:
         print("Solution is SAT. Optimal or near-optimal solution found.")
         model = solver.model()
@@ -188,6 +192,7 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
             load_i = sum(s[j] for j in assigned_items)
             print(f"Assigned items = {assigned_items}")
             print(f"Total load = {load_i} (capacity = {l[i]})")
+            assigned_matrix.append([item +1 for item in assigned_items])
             
             # ---- 2) Distance traveled
             dist_val = model.evaluate(distance_i[i], model_completion=True)
@@ -239,7 +244,52 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
                 print(f"Route: {route_str}")
         
             print("")  # blank line
-            end_time = time.time()
-            print(end_time-start_time)
+        end_time = time.time()
+        time_total = end_time-start_time
+        final_dict = {
+            model_name : {
+                "time": time_total,
+                "optimal": True,
+                "obj": int(D_val.as_string()),
+                "sol": assigned_matrix
+            }
+        }
+        print(final_dict)
+        print(type(instance))
+        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
     else:
         print("No solution or UNSAT.")
+        end_time = time.time()
+        time_total = end_time-start_time
+
+        for i in range(m):
+            print(f"=== Courier {i} ===")
+            print(result)
+            model = solver.model()
+            print(model)
+            print(solver.upper(obj))
+            D_val = model.evaluate(D, model_completion=True)
+            print(D_val.as_string())
+            # ---- 1) Which items are assigned to courier i?
+            assigned_items = []
+            for j in range(n):
+                if model.evaluate(x[i, j], model_completion=True):
+                    assigned_items.append(j)
+            # Compute the total load
+            load_i = sum(s[j] for j in assigned_items)
+            print(f"Assigned items = {assigned_items}")
+            print(f"Total load = {load_i} (capacity = {l[i]})")
+            assigned_matrix.append([item +1 for item in assigned_items])
+
+        final_dict = {
+            model_name : {
+                "time": time_total,
+                "optimal": False,
+                "obj": int(D_val.as_string()),
+                "sol": assigned_matrix
+            }
+        }
+        print(final_dict)
+        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
+        
+        

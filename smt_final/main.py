@@ -65,12 +65,14 @@ def main():
 
             # Select and run the specified model
             if args.model.lower() == "2d":
-                run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry)
+                run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry, i)
             elif args.model.lower() == "3d":
                 run_model_3d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry)
             else:
                 print(f"Error: Unknown model '{args.model}'. Choose '2d' or '3d'.")
                 sys.exit(1)
+
+            print(f"------------------------------INSTANCE {instance_filename} DONE-------------------------------------\n\n")
     else:
         # Read the data file
         instance_filename = f"inst{args.instance}.dat"
@@ -90,7 +92,7 @@ def main():
 
         # Select and run the specified model
         if args.model.lower() == "2d":
-            run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry)
+            run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry, args.instance)
         elif args.model.lower() == "3d":
             run_model_3d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry)
         else:

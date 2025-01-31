@@ -2,7 +2,7 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
+def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
     # Start timing
     start_time = time.time()
     capacity = l
@@ -132,7 +132,7 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
     ####################################
     # Set a 5-minute timeout (300,000 milliseconds)
     # solver.set(timeout=300000)
-    obj = solver.minimize(D)
+    # obj = solver.minimize(D)
 
     # We'll set M to n (the total number of items).
     M = n
@@ -181,13 +181,14 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
         for i in range(m):
             print(f"=== Courier {i} ===")
             
+            assigned_matrix = []
             # ---- 1) Which items are assigned to courier i?
             assigned_items = []
             for j in range(n):
                 for k in range(n):
                     if model.evaluate(x[i, j, k], model_completion=True):
                         assigned_items.append((j, k))
-            
+            assigned_matrix.append(assigned_items)
             # Sort assigned items by position
             assigned_items_sorted = sorted(assigned_items, key=lambda x: x[1])
             sorted_items = [item for (item, pos) in assigned_items_sorted]
@@ -230,6 +231,19 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
         
         # Print total time taken
         print(f"Total time taken: {end_time - start_time} seconds")
+        time_total = end_time-start_time
+        print(end_time-start_time)
+        model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
+        final_dict = {
+            model_name : {
+                "time": time_total,
+                "optimal": True,
+                "obj": D_val.as_string(),
+                "sol": assigned_matrix
+            }
+        }
+        print(final_dict)
+        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{instance}.json", "res/SMT")
         
     else:
         print("No solution or UNSAT.")
