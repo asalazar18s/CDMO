@@ -2,7 +2,7 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin):
+def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
     start_time = time.time() 
 
     lower_bound, upper_bound = compute_bounds(D_matrix, ITEMS, m)
@@ -57,14 +57,15 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin):
     # 3) Symmetry Breaking Constraints
     ####################################
     # Order couriers by the sum of their assigned item indices to break symmetry
-    for i in range(m - 1):
-        lhs = Sum([If(x[i, j], j, 0) for j in range(n)])
-        rhs = Sum([If(x[i + 1, j], j, 0) for j in range(n)])
-        solver.add(lhs <= rhs)
-        # Explanation:
-        # This ensures that the sum of item indices assigned to courier i
-        # is less than or equal to that of courier i+1, preventing
-        # permutations of courier assignments that are symmetric.
+    if(symmetry):
+        for i in range(m - 1):
+            lhs = Sum([If(x[i, j], j, 0) for j in range(n)])
+            rhs = Sum([If(x[i + 1, j], j, 0) for j in range(n)])
+            solver.add(lhs <= rhs)
+            # Explanation:
+            # This ensures that the sum of item indices assigned to courier i
+            # is less than or equal to that of courier i+1, preventing
+            # permutations of courier assignments that are symmetric.
 
     ####################################
     # 3) Route consistency constraints (simple version)
@@ -202,7 +203,6 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin):
             
             # We might have multiple loops if sub-tours exist. Let's find them all.
             arcs_used = set(arcs)
-            loops = []
             
             # A function to follow arcs from a start until we return or run out
             def follow_loop(start, arcs_used):

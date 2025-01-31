@@ -105,46 +105,4 @@ def compute_bounds(D_matrix, ITEMS, m, implied_constraint=False):
     
     return lower_bound, upper_bound
 
-import os
-import json
-
-def store_solver_data(data_dict, solver_name, file_name, base_path="/desired/storage/path/"):
-    """
-    Stores the data associated with a solver name into a file.
-
-    Parameters:
-    - data_dict (dict): Dictionary containing solver data.
-    - solver_name (str): The key in the dictionary to retrieve data.
-    - file_name (str): The name of the file to store the data.
-    - base_path (str): The directory path where the file will be stored.
-
-    Raises:
-    - KeyError: If the solver_name is not in the data_dict.
-    - IOError: If there is an error writing to the file.
-    """
-    # Check if the solver_name exists in the dictionary
-    if solver_name not in data_dict:
-        raise KeyError(f"Solver name '{solver_name}' not found in the provided dictionary.")
-
-    # Get the data for the solver
-    solver_data = data_dict[solver_name]
-
-    # Ensure the base path exists
-    try:
-        os.makedirs(base_path, exist_ok=True)
-    except Exception as e:
-        print(f"Failed to create directory '{base_path}': {e}")
-        raise
-
-    # Construct the full file path
-    file_path = os.path.join(base_path, file_name)
-
-    # Save the data as JSON
-    try:
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(solver_data, f, indent=4)
-        print(f"Data for solver '{solver_name}' has been stored in '{file_path}'.")
-    except IOError as e:
-        print(f"An error occurred while writing to the file '{file_path}': {e}")
-        raise
-
+# def save_to_json():

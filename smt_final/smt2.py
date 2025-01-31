@@ -2,7 +2,7 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin):
+def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry):
     # Start timing
     start_time = time.time()
     capacity = l
@@ -60,14 +60,15 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin):
     # 3) Symmetry Breaking Constraints
     ####################################
     # Order couriers by the sum of their assigned item indices at position 0 to break symmetry
-    # for i in range(m - 1):
-    #     lhs = Sum([If(x[i, j, 0], j, 0) for j in range(n)])
-    #     rhs = Sum([If(x[i + 1, j, 0], j, 0) for j in range(n)])
-    #     solver.add(lhs <= rhs)
-    #     # Explanation:
-        # This ensures that the sum of item indices assigned to courier i
-        # at position 0 is less than or equal to that of courier i+1,
-        # preventing permutations of courier assignments that are symmetric.
+    if (symmetry):
+        for i in range(m - 1):
+            lhs = Sum([If(x[i, j, 0], j, 0) for j in range(n)])
+            rhs = Sum([If(x[i + 1, j, 0], j, 0) for j in range(n)])
+            solver.add(lhs <= rhs)
+            # Explanation:
+            # This ensures that the sum of item indices assigned to courier i
+            # at position 0 is less than or equal to that of courier i+1,
+            # preventing permutations of courier assignments that are symmetric.
 
     ####################################
     # 4) Sequence Constraints
