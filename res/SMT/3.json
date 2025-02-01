@@ -1,38 +1,68 @@
 {
-  "SMT2D": {
-    "time": 0.23671913146972656,
-    "optimal": true,
-    "obj": 12,
-    "sol": [
-      [5, 6, 3],
-      [4, 2],
-      [7, 1]
-    ]
-  },
-  "SMT3D": {
-    "time": 0,
-    "optimal": true,
-    "obj": 12,
-    "sol": [
-      [5, 6, 3],
-      [4, 2],
-      [7, 1]
-    ]
-  },
-  "SMT2D_symmetry": {
-    "time": 300,
-    "optimal": false,
-    "obj": 0,
-    "sol": "N/A"
-  },
-  "SMT3D_symmetry": {
-    "time": 0,
-    "optimal": true,
-    "obj": 12,
-    "sol": [
-      [5, 4, 2],
-      [6, 3],
-      [7, 1]
-    ]
-  }
+    "SMT2D": {
+        "time": 0,
+        "optimal": true,
+        "obj": 12,
+        "sol": [
+            [
+                5,
+                6,
+                3
+            ],
+            [
+                4,
+                2
+            ],
+            [
+                7,
+                1
+            ]
+        ]
+    },
+    "SMT3D": {
+        "time": 0,
+        "optimal": true,
+        "obj": 12,
+        "sol": [
+            [
+                5,
+                6,
+                3
+            ],
+            [
+                4,
+                2
+            ],
+            [
+                7,
+                1
+            ]
+        ]
+    },
+    "SMT2D_symmetry": {
+        "time": 300,
+        "optimal": false,
+        "obj": 0,
+        "sol": "N/A"
+    },
+    "SMT3D_symmetry": {
+        "time": 0,
+        "optimal": true,
+        "obj": 12,
+        "sol": [
+            [
+                5,
+                4,
+                2
+            ],
+            [
+                6,
+                3
+            ],
+            [
+                7,
+                1
+            ]
+        ]
+    }
 }

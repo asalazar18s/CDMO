@@ -44,16 +44,20 @@ def read_dat_file(filename):
     
     return num_couriers, num_load, courier_capacity, load_size, distance
 
-def compute_bounds(D_matrix, items):
-    n = len(D_matrix) - 1  # Assuming origin is indexed at n
-    # Compute lower bound
-    lower_bound = max([D_matrix[n][j] + D_matrix[j][n] for j in items])
-    
-    # Compute maximum distances per node (excluding origin)
-    max_distances = [max(D_matrix[i][:-1]) for i in range(n)]
-    max_distances.sort()
-    upper_bound = sum(max_distances[1:]) + max(D_matrix[n]) + max([D_matrix[j][n] for j in range(n)])
-    
+def compute_bounds(D_matrix, m, n):
+
+    depot_index = n  # Assuming the depot is at index n (last row/column)
+
+    # Compute lower bound: Maximum round-trip distance to/from the depot
+    lower_bound = max(D_matrix[depot_index][i] + D_matrix[i][depot_index] for i in range(1, n+1))
+
+    # Compute the sum of distances for i ranging from 1 to floor(n/m) + 1
+    num_terms = min(n, (n // m) + 1)  # Ensure we don’t go out of bounds
+    sum_distances = sum(D_matrix[i][i+1] for i in range(1, num_terms))
+
+    # Compute the upper bound by adding the lower bound
+    upper_bound = sum_distances + lower_bound
+
     return lower_bound, upper_bound
 
 def save_json(data_dict, solver_name, file_name, base_path):

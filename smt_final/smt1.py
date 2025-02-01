@@ -4,12 +4,18 @@ import time
 
 def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     
+
+    ####################################
+    # Forbid self-loops
+    ####################################
+    for i in range(m):
+        for j in range(n+1):
+            solver.add(Not(y[i, j, j]))
+
     start_time = time.time()
-    items = list(range(n))
     model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
-    lower_bound, upper_bound = compute_bounds(D_matrix, items)
-    print(f"Computed Lower Bound: {lower_bound}")
-    print(f"Computed Upper Bound: {upper_bound}")
+    lower_bound, upper_bound = compute_bounds(D_matrix, m, n)
+    print(lower_bound, upper_bound)
 
     # Create an Optimize object
     solver = Optimize()
@@ -27,37 +33,26 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             for v in range(n+1):
                 y[i, u, v] = Bool(f"y_{i}_{u}_{v}")
 
-    ####################################
-    # Forbid self-loops
-    ####################################
-    for i in range(m):
-        for j in range(n+1):
-            solver.add(Not(y[i, j, j]))
-
     # Courier Distance Variables
     distance_i = {}
     for i in range(m):
         distance_i[i] = Real(f"distance_{i}")
-
+    
     # Global Maximum Distance
     D = Real("D")
 
     # Constraints
-    ####################################
-    # 1) Each item is assigned exactly once
-    ####################################
+    # 1. Each item is assigned exactly once
+    # Sum over all couriers and positions for each item equals 1.
     for j in range(n):
         solver.add(PbEq([(x[i, j], 1) for i in range(m)], 1))
 
-    ####################################
-    # 2) Capacity constraints
-    ####################################
+    # 2. Capacity constraints
+    # At most one item is delivered per courier at each delivery position.
     for i in range(m):
         solver.add(PbLe([(x[i, j], s[j]) for j in range(n)], l[i]))
 
-    ####################################
-    # 3) Symmetry Breaking Constraints
-    ####################################
+    # 3. Symmetry Breaking
     # Order couriers by the sum of their assigned item indices to break symmetry
     if(symmetry):
         for i in range(m - 1):
@@ -120,22 +115,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     for i in range(m):
         solver.add(distance_i[i] <= D)
 
-    ####################################
-    # 6) Integrate Lower and Upper Bounds
-    ####################################
 
-    # Add lower bound constraint
-    solver.add(D >= lower_bound)
-
-    # Uncomment the following line if you want to enforce the upper bound
-    solver.add(D <= upper_bound)
-
-    ####################################
-    # 7) Objective: minimize D
-    ####################################
-    # Set a 5-minute timeout (300,000 milliseconds)
-    solver.set(timeout=300000)
-    obj = solver.minimize(D)
     # We'll set M to n (the total number of items).
     M = n
 
@@ -165,10 +145,22 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
                         - M * (1 - If(y[i, j, k], 1, 0))
                     )
 
+    ####################################
+    # 6) Integrate Lower and Upper Bounds
+    ####################################
+    solver.add(D >= lower_bound)
+    solver.add(D <= upper_bound)
+
+    ####################################
+    # 7) Objective: minimize D
+    ####################################
+    # Set a 5-minute timeout (300,000 milliseconds)
+    solver.set(timeout=300000)
+    objective = solver.minimize(D)
+
     # Solve
     result = solver.check()
-    end_time = time.time()
-    time_total = int(end_time - start_time)
+    total_time = int(time.time() - start_time)
     assigned_matrix = []
     if result == sat:
         print(f"Instance {instance}: Solution is SAT. Optimal or near-optimal solution found.")
@@ -226,11 +218,11 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
                 assigned_matrix.append(ordered_items)
             
         
-        print(f"Instance {instance}: Total Time = {time_total} seconds")
+        print(f"Instance {instance}: Total Time = {total_time} seconds")
         
         print("")  # blank line
         final_dict = {
-                "time": time_total,
+                "time": total_time,
                 "optimal": True,
                 "obj": int(D_val.as_string()),
                 "sol": assigned_matrix

@@ -36,9 +36,15 @@ def extract_solution(model, x, y, distance_i, D, m, n, s, capacities):
 
 
 def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
+    start_time = time.time()
     model_name = f"SMT3D{'_symmetry' if symmetry else ''}"
     capacities = l.copy()
-    start_time = time.time()
+    lower_bound, upper_bound = compute_bounds(D_matrix, m, n)
+    print(lower_bound, upper_bound)
+    
+    # Create an Optimize object
+    solver = Optimize()
+
     # x[i, j, k] is True if courier i delivers item j in position k
     x = {}
     for i in range(m):
@@ -57,22 +63,25 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
     for i in range(m):
         distance_i[i] = Real(f"distance_{i}")
     D = Real("D")  # global maximum route distance
-
-    solver = Optimize()
-    solver.set(timeout=300000)
-    # --------------------------------------------------------------------
-    # 1. Each item must be delivered exactly once.
-    #    Sum over all couriers and positions for each item equals 1.
-    # --------------------------------------------------------------------
+    
+    # 1. Each item is assigned exactly once
+    # Sum over all couriers and positions for each item equals 1.
     for j in range(n):
         solver.add(Sum([If(x[i, j, k], 1, 0) for i in range(m) for k in range(n)]) == 1)
 
-    # --------------------------------------------------------------------
-    # 2. At most one item is delivered per courier at each delivery position.
-    # --------------------------------------------------------------------
+    # 2.Capacity constraints
+    # At most one item is delivered per courier at each delivery position.
     for i in range(m):
         for k in range(n):
             solver.add(Sum([If(x[i, j, k], 1, 0) for j in range(n)]) <= 1)
+
+    # 3. Symmetry Breaking
+    # Order couriers by the sum of their assigned item indices to break symmetry
+    if symmetry:
+        for i in range(m - 1):
+            sum_first_i   = Sum([If(x[i, j, 0], j, 0) for j in range(n)])
+            sum_first_ip1 = Sum([If(x[i+1, j, 0], j, 0) for j in range(n)])
+            solver.add(sum_first_i <= sum_first_ip1)
 
     # --------------------------------------------------------------------
     # 3. Enforce contiguity: if a courier does not deliver an item at position k,
@@ -162,16 +171,6 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
     for i in range(m):
         solver.add(distance_i[i] <= D)
 
-    # --------------------------------------------------------------------
-    # 8. (Optional) Symmetry Breaking:
-    #    For example, order couriers by the index of their first assigned item.
-    # --------------------------------------------------------------------
-    if symmetry:
-        for i in range(m - 1):
-            sum_first_i   = Sum([If(x[i, j, 0], j, 0) for j in range(n)])
-            sum_first_ip1 = Sum([If(x[i+1, j, 0], j, 0) for j in range(n)])
-            solver.add(sum_first_i <= sum_first_ip1)
-
     # MTZ variables: u[i, j] for courier i and item j.
     u = {}
     for i in range(m):
@@ -192,10 +191,16 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
                     # When y[i, j, k] is False, the constraint is relaxed by subtracting n.
                     solver.add(u[i, k] >= u[i, j] + 1 - n * (1 - If(y[i, j, k], 1, 0)))
 
+    ####################################
+    # 6) Integrate Lower and Upper Bounds
+    ####################################
+    solver.add(D >= lower_bound)
+    solver.add(D <= upper_bound)
+
+    solver.set(timeout=300000)
     objective = solver.minimize(D)
 
     # Assuming solver.check() has been called and returned sat
-    start_time = time.time()
     result = solver.check()
     total_time = int(time.time() - start_time)
     if result == sat:
