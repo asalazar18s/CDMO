@@ -90,20 +90,15 @@ def reconstruct_single_loop(i, origin, arcs_used):
             break
     return route
 
-# Compute lower and upper bounds
-def compute_bounds(D_matrix, ITEMS, m, implied_constraint=False):
+def compute_bounds(D_matrix, items):
     n = len(D_matrix) - 1  # Assuming origin is indexed at n
     # Compute lower bound
-    lower_bound = max([D_matrix[n][j] + D_matrix[j][n] for j in ITEMS])
+    lower_bound = max([D_matrix[n][j] + D_matrix[j][n] for j in items])
     
     # Compute maximum distances per node (excluding origin)
     max_distances = [max(D_matrix[i][:-1]) for i in range(n)]
     max_distances.sort()
-    
-    if implied_constraint:
-        upper_bound = sum(max_distances[m:]) + max(D_matrix[n]) + max([D_matrix[j][n] for j in range(n)])
-    else:
-        upper_bound = sum(max_distances[1:]) + max(D_matrix[n]) + max([D_matrix[j][n] for j in range(n)])
+    upper_bound = sum(max_distances[1:]) + max(D_matrix[n]) + max([D_matrix[j][n] for j in range(n)])
     
     return lower_bound, upper_bound
 

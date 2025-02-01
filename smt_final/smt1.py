@@ -2,12 +2,12 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry, instance):
+def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     
     start_time = time.time()
-
+    items = list(range(n))
     model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
-    lower_bound, upper_bound = compute_bounds(D_matrix, ITEMS, m)
+    lower_bound, upper_bound = compute_bounds(D_matrix, items)
     print(f"Computed Lower Bound: {lower_bound}")
     print(f"Computed Upper Bound: {upper_bound}")
 

@@ -65,7 +65,7 @@ def main():
 
             # Select and run the specified model
             if args.model.lower() == "2d":
-                run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry, i)
+                run_model_2d(m, n, l, sizes, D_matrix, origin, args.symmetry, i)
             elif args.model.lower() == "3d":
                 run_model_3d(m, n, l, sizes, D_matrix, n, args.symmetry, args.instance)
             else:
@@ -87,12 +87,10 @@ def main():
             sys.exit(1)
         
         origin = n  # Assuming origin is indexed at n
-        ITEMS = list(range(n))  # Adjust if ITEMS is a subset
-
-
+        
         # Select and run the specified model
         if args.model.lower() == "2d":
-            run_model_2d(m, n, l, sizes, D_matrix, ITEMS, origin, args.symmetry, args.instance)
+            run_model_2d(m, n, l, sizes, D_matrix, origin, args.symmetry, args.instance)
         elif args.model.lower() == "3d":
             run_model_3d(m, n, l, sizes, D_matrix, n, args.symmetry, args.instance)
         else:
