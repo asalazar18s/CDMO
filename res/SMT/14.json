@@ -10,5 +10,17 @@
     "optimal": false,
     "obj": 0,
     "sol": "N/A"
+  },
+  "SMT2D_symmetry": {
+    "time": 300,
+    "optimal": false,
+    "obj": 0,
+    "sol": "N/A"
+  },
+  "SMT3D_symmetry": {
+    "time": 300,
+    "optimal": false,
+    "obj": 0,
+    "sol": "N/A"
   }
 }

@@ -24,5 +24,15 @@
     "optimal": false,
     "obj": 0,
     "sol": "N/A"
+  },
+  "SMT3D_symmetry": {
+    "time": 0,
+    "optimal": true,
+    "obj": 12,
+    "sol": [
+      [5, 4, 2],
+      [6, 3],
+      [7, 1]
+    ]
   }
 }
