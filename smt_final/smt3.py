@@ -46,31 +46,42 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
     solver = Optimize()
 
     # x[i, j, k] is True if courier i delivers item j in position k
+    # Item-to-Courier Assignment Variables to position
     x = {}
     for i in range(m):
         for j in range(n):
             for k in range(n):
                 x[i, j, k] = Bool(f"x_{i}_{j}_{k}")
 
-    # The nodes are items 0...n-1 and origin represented by node n
+    # Route/Arc Variables
     y = {}
     for i in range(m):
         for u in range(n + 1):  # nodes: items and origin
             for v in range(n + 1):
                 y[i, u, v] = Bool(f"y_{i}_{u}_{v}")
-
+    
+    # Courier Distance Variables
     distance_i = {}
     for i in range(m):
         distance_i[i] = Real(f"distance_{i}")
-    D = Real("D")  # global maximum route distance
+        
+    # Global Maximum Distance
+    D = Real("D")
     
+    # Constraints 
     # 1. Each item is assigned exactly once
-    # Sum over all couriers and positions for each item equals 1.
+    # Sum over all couriers and positions and delivery positions for each item equals 1.
     for j in range(n):
         solver.add(Sum([If(x[i, j, k], 1, 0) for i in range(m) for k in range(n)]) == 1)
 
-    # 2.Capacity constraints
+    # 2 Capacity Constraints:
+    # Total load delivered by courier i (summing each item only once) must be within its capacity.
+    for i in range(m):
+        solver.add(Sum([If(x[i, j, k], s[j], 0) for j in range(n) for k in range(n)]) <= l[i])
+
+    # 2.1. Capacity constraint
     # At most one item is delivered per courier at each delivery position.
+    # this is due to the nature of the 3D matrix so that they dont overlap
     for i in range(m):
         for k in range(n):
             solver.add(Sum([If(x[i, j, k], 1, 0) for j in range(n)]) <= 1)
@@ -83,65 +94,39 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
             sum_first_ip1 = Sum([If(x[i+1, j, 0], j, 0) for j in range(n)])
             solver.add(sum_first_i <= sum_first_ip1)
 
-    # --------------------------------------------------------------------
-    # 3. Enforce contiguity: if a courier does not deliver an item at position k,
-    #    then no delivery should occur at any later position.
-    # --------------------------------------------------------------------
+    # 4. Route consistency constraints
+    # make sure that courier must take its next item in the order they are assigned
+    # simplifies model
     for i in range(m):
         for k in range(n - 1):
             # If no item is assigned at position k, then none should be assigned at k+1.
             solver.add(Implies(Sum([If(x[i, j, k], 1, 0) for j in range(n)]) == 0,
                                Sum([If(x[i, j, k+1], 1, 0) for j in range(n)]) == 0))
 
-    # --------------------------------------------------------------------
-    # 4. Capacity Constraints:
-    #    Total load delivered by courier i (summing each item only once)
-    #    must be within its capacity.
-    #    Note: Since an item is assigned exactly once, summing over all positions is fine.
-    # --------------------------------------------------------------------
-    for i in range(m):
-        solver.add(Sum([If(x[i, j, k], s[j], 0) for j in range(n) for k in range(n)]) <= l[i])
-
-    # --------------------------------------------------------------------
-    # 4.5. Ensure each courier is used: at least one item is assigned to courier i.
-    # --------------------------------------------------------------------
+    # 5. Enforce at least one item per courier    *******
     for i in range(m):
         solver.add(Or([x[i, j, k] for j in range(n) for k in range(n)]))
 
 
-    # --------------------------------------------------------------------
-    # 5. Route Arc Constraints:
-    #    (a) Forbid self-loops: a courier cannot travel from a node to itself.
-    # --------------------------------------------------------------------
-    for i in range(m):
-        for u in range(n + 1):  # items + origin
-            solver.add(Not(y[i, u, u]))
-
-    # --------------------------------------------------------------------
-    #    (b) Link assignments to route arcs:
-    #        If courier i delivers item j at position k and item l at position k+1,
-    #        then the arc from j to l must be activated.
-    # --------------------------------------------------------------------
+    # # Link assignments to route arcs:
+    # If courier i delivers item j at position k and item l at position k+1,
+    # then the arc from j to l must be activated.
     for i in range(m):
         for k in range(n - 1):
             for j in range(n):
                 for l in range(n):
                     solver.add(Implies(And(x[i, j, k], x[i, l, k+1]), y[i, j, l]))
 
-    # --------------------------------------------------------------------
-    #    (c) For the first delivery: if courier i delivers item j at position 0,
-    #        then there must be an arc from the origin to item j.
-    # --------------------------------------------------------------------
+    # 6. Forbid self-loops
+    for i in range(m):
+        for u in range(n + 1):  # items + origin
+            solver.add(Not(y[i, u, u]))
+
+    # 7. Enforce courier must leave origin once and return once (Like 6)
     for i in range(m):
         for j in range(n):
             solver.add(Implies(x[i, j, 0], y[i, origin, j]))
 
-
-    # --------------------------------------------------------------------
-    #    (d) For the last delivered item: if courier i's last assigned delivery is at
-    #        position k (i.e. position k is assigned but k+1 is not), then there must be
-    #        an arc from that item back to the origin.
-    # --------------------------------------------------------------------
     for i in range(m):
         for k in range(n):
             for j in range(n):
@@ -154,24 +139,19 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
                                              Sum([If(x[i, l, k+1], 1, 0) for l in range(n)]) == 0),
                                            y[i, j, origin]))
 
-    # --------------------------------------------------------------------
-    # 6. Distance Calculation (Revised):
-    #    Compute each courier's total distance directly from the activated route arcs.
-    #    For each courier, sum the distances for all arcs (u,v) where y[i, u, v] is True.
-    # --------------------------------------------------------------------
+    # 8. Distance Calculation
+    # Compute each courier's total distance directly from the activated route arcs.
     for i in range(m):
         route_distance = Sum([If(y[i, u, v], D_matrix[u][v], 0) 
                               for u in range(n + 1) for v in range(n + 1)])
         solver.add(distance_i[i] == route_distance)
 
-    # --------------------------------------------------------------------
-    # 7. Global Maximum Distance:
-    #    Each courier’s distance must be less than or equal to D.
-    # --------------------------------------------------------------------
+    # 9. Bound each courier's distance by D
+    # Each courier’s distance must be less than or equal to D.
     for i in range(m):
         solver.add(distance_i[i] <= D)
 
-    # MTZ variables: u[i, j] for courier i and item j.
+    # 10. MTZ variables: u[i, j] for courier i and item j.
     u = {}
     for i in range(m):
         for j in range(n):
@@ -180,7 +160,7 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
             solver.add(u[i, j] >= 1)
             solver.add(u[i, j] <= n)
 
-    # Add MTZ subtour elimination constraints:
+    # 11. Add MTZ subtour elimination constraints:
     # If courier i travels directly from item j to item k, then
     # u[i, k] must be at least u[i, j] + 1, adjusted by a big-M formulation.
     for i in range(m):
@@ -191,16 +171,22 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
                     # When y[i, j, k] is False, the constraint is relaxed by subtracting n.
                     solver.add(u[i, k] >= u[i, j] + 1 - n * (1 - If(y[i, j, k], 1, 0)))
 
-    ####################################
-    # 6) Integrate Lower and Upper Bounds
-    ####################################
+    # 12. Integrate Lower and Upper Bounds
     solver.add(D >= lower_bound)
     solver.add(D <= upper_bound)
 
+    # 13. Objective: minimize D
     solver.set(timeout=300000)
     objective = solver.minimize(D)
 
-    # Assuming solver.check() has been called and returned sat
+    print(solver.sexpr())
+    # Capture the SMT2-like representation
+    smt2_str = solver.sexpr()
+
+    # Save to a .smt2 file
+    with open("model.smt2", "w") as f:
+        f.write(smt2_str)
+    # Solve
     result = solver.check()
     total_time = int(time.time() - start_time)
     if result == sat:

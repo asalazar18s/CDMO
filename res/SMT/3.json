@@ -10,8 +10,8 @@
                 3
             ],
             [
-                4,
-                2
+                2,
+                4
             ],
             [
                 7,
@@ -43,7 +43,9 @@
         "time": 300,
         "optimal": false,
         "obj": 0,
-        "sol": "N/A"
+        "sol": [
+            []
+        ]
     },
     "SMT3D_symmetry": {
         "time": 0,

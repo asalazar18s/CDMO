@@ -1,14 +1,21 @@
-# Use a base Python image
-FROM python:3.9.6
+FROM minizinc/minizinc:latest
 
-# Set the working directory inside the container
-WORKDIR /cdmo
+# Install required packages, including python3-venv and correct pip dependencies
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv python3.12-venv
 
-# Copy the project files into the container
-COPY . .
+# Set the working directory
+WORKDIR /app
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy project files
+COPY . /app
 
-# Keep the container running (optional)
-CMD ["tail", "-f", "/dev/null"]
+# Create and activate a virtual environment
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/python -m ensurepip --default-pip && \
+    /app/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /app/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Set environment variables to use the virtual environment
+ENV PATH="/app/venv/bin:$PATH"
+
+CMD ["/bin/bash"]

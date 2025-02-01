@@ -3,15 +3,6 @@ from utils import *
 import time
 
 def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
-    
-
-    ####################################
-    # Forbid self-loops
-    ####################################
-    for i in range(m):
-        for j in range(n+1):
-            solver.add(Not(y[i, j, j]))
-
     start_time = time.time()
     model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
     lower_bound, upper_bound = compute_bounds(D_matrix, m, n)
@@ -48,7 +39,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
         solver.add(PbEq([(x[i, j], 1) for i in range(m)], 1))
 
     # 2. Capacity constraints
-    # At most one item is delivered per courier at each delivery position.
+    # Total load delivered by courier i (summing each item only once) must be within its capacity.
     for i in range(m):
         solver.add(PbLe([(x[i, j], s[j]) for j in range(n)], l[i]))
 
@@ -64,10 +55,8 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             # is less than or equal to that of courier i+1, preventing
             # permutations of courier assignments that are symmetric.
 
-    ####################################
-    # 3) Route consistency constraints (simple version)
-    ####################################
 
+    # 4. Route consistency constraints 
     for i in range(m):
         for j in range(n):
             # In-degree for location j if assigned to courier i
@@ -79,11 +68,17 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
                 Sum([If(y[i, j, v], 1, 0) for v in range(n+1)]) == If(x[i, j], 1, 0)
             )
 
+    # 5. Enforce at least one item per courier
     for i in range(m):
         # Count how many items are assigned to courier i
         assigned_count_i = Sum([If(x[i, j], 1, 0) for j in range(n)])
-        
+        # Enforce at least 1 item assigned to each courier
         solver.add(assigned_count_i >= 1)
+
+    # 6. Enforce courier must leave origin once and return once 
+    for i in range(m):
+        # Count how many items are assigned to courier i
+        assigned_count_i = Sum([If(x[i, j], 1, 0) for j in range(n)])
 
         # If courier i has at least one assigned item, it leaves the origin exactly once...
         solver.add(
@@ -96,9 +91,15 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             If(assigned_count_i > 0, 1, 0)
         )
 
-    ####################################
-    # 4) Distance calculation
-    ####################################
+    
+    # 7. Forbid self-loops
+    for i in range(m):
+        for j in range(n+1):
+            solver.add(Not(y[i, j, j]))
+
+    
+    # 8. Distance calculation
+    # Compute each courier's total distance directly from the activated route arcs.
     for i in range(m):
         solver.add(
             distance_i[i] == 
@@ -109,21 +110,13 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             ])
         )
 
-    ####################################
-    # 5) Bound each courier's distance by D
-    ####################################
+    # 9. Bound each courier's distance by D
+    # Each courier’s distance must be less than or equal to D.
     for i in range(m):
         solver.add(distance_i[i] <= D)
 
-
-    # We'll set M to n (the total number of items).
-    M = n
-
-    ####################################
-    # 8) MTZ variables and constraints
-    ####################################
-
-    # 8a) Define u[i,j] for each courier i and item j
+    # 10. MTZ variables and constraints
+    # Define u[i,j] for each courier i and item j
     u = {}
     for i in range(m):
         for j in range(n):  # for each item j
@@ -132,36 +125,28 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             solver.add(u[i, j] >= 1)
             solver.add(u[i, j] <= n)
 
-    # 8b) Add the MTZ constraints:
+    # 11. Add the MTZ constraints:
     for i in range(m):
         for j in range(n):
             for k in range(n):
                 if j != k:  # no self loops
                     # If courier i travels j->k, then:
                     # u[i, k] >= u[i, j] + 1 - M*(1 - y[i, j, k])
-                    solver.add(
-                        u[i, k] >= 
-                        u[i, j] + 1 
-                        - M * (1 - If(y[i, j, k], 1, 0))
-                    )
+                    solver.add(u[i, k] >= u[i, j] + 1 - n * (1 - If(y[i, j, k], 1, 0))
+)
 
-    ####################################
-    # 6) Integrate Lower and Upper Bounds
-    ####################################
+    # 12. Integrate Lower and Upper Bounds
     solver.add(D >= lower_bound)
     solver.add(D <= upper_bound)
 
-    ####################################
-    # 7) Objective: minimize D
-    ####################################
-    # Set a 5-minute timeout (300,000 milliseconds)
+    # 13. Objective: minimize D
     solver.set(timeout=300000)
-    objective = solver.minimize(D)
-
+    solver.minimize(D)
     # Solve
     result = solver.check()
     total_time = int(time.time() - start_time)
     assigned_matrix = []
+
     if result == sat:
         print(f"Instance {instance}: Solution is SAT. Optimal or near-optimal solution found.")
         model = solver.model()

@@ -4,6 +4,7 @@ import argparse
 import sys
 from smt1 import run_model_2d
 from smt3 import run_model_3d
+# from smt2 import run_model_2d
 from utils import read_dat_file
 
 def main():
@@ -67,7 +68,7 @@ def main():
             if args.model.lower() == "2d":
                 run_model_2d(m, n, l, sizes, D_matrix, origin, args.symmetry, i)
             elif args.model.lower() == "3d":
-                run_model_3d(m, n, l, sizes, D_matrix, n, args.symmetry, args.instance)
+                run_model_3d(m, n, l, sizes, D_matrix, origin, args.symmetry, args.instance)
             else:
                 print(f"Error: Unknown model '{args.model}'. Choose '2d' or '3d'.")
                 sys.exit(1)
@@ -92,7 +93,7 @@ def main():
         if args.model.lower() == "2d":
             run_model_2d(m, n, l, sizes, D_matrix, origin, args.symmetry, args.instance)
         elif args.model.lower() == "3d":
-            run_model_3d(m, n, l, sizes, D_matrix, n, args.symmetry, args.instance)
+            run_model_3d(m, n, l, sizes, D_matrix, origin, args.symmetry, args.instance)
         else:
             print(f"Error: Unknown model '{args.model}'. Choose '2d' or '3d'.")
             sys.exit(1)
