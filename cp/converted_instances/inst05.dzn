@@ -1,8 +1,0 @@
-num_couriers = 2;
-num_load = 3;
-courier_capacity = [18, 30];
-load_size = [20, 17, 6];
-distance = [| 0, 21, 86, 99,
-  | 21, 0, 71, 80,
-  | 92, 71, 0, 61,
-  | 59, 80, 61, 0 |];
