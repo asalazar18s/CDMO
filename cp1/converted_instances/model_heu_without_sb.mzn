@@ -64,11 +64,6 @@ constraint
         exists(load in 2..num_load+1)(load_assigned[courier, load] != num_load+1)
     );
 
-% Enforce lexicographical order on the load assignments for symmetry breaking
-constraint
-    forall(courier in 1..num_couriers-1)(
-        load_assigned[courier, 2..num_load+1] <= load_assigned[courier + 1, 2..num_load+1]
-    );
 
 solve :: int_search([load_assigned[courier, pos] | courier in 1..num_couriers, pos in 2..num_load+1], dom_w_deg, indomain_random) minimize z;
 
