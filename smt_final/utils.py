@@ -108,8 +108,7 @@ def compute_bounds(D_matrix, ITEMS, m, implied_constraint=False):
     return lower_bound, upper_bound
 
 
-def save_json(data_dict, solver_name, file_name, base_path="/desired/storage/path/"):
-
+def save_json(data_dict, solver_name, file_name, base_path):
 
     # Ensure the base path exists
     try:
@@ -121,12 +120,42 @@ def save_json(data_dict, solver_name, file_name, base_path="/desired/storage/pat
     # Construct the full file path
     file_path = os.path.join(base_path, file_name)
 
-    # Save the data as JSON
+    # Load existing data if the file exists
+    existing_data = {}
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            print(f"Warning: Unable to read existing JSON file '{file_path}', starting fresh.")
+    
+    # Overwrite or add the solver entry
+    existing_data[solver_name] = data_dict
+
+    # Save the updated data back to the file
     try:
         with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data_dict, f, indent=4)
+            json.dump(existing_data, f, indent=4)
         print(f"Data for solver '{solver_name}' has been stored in '{file_path}'.")
     except IOError as e:
         print(f"An error occurred while writing to the file '{file_path}': {e}")
         raise
 
+def follow_loop(start, arcs_used):
+            route = [start]
+            current = start
+            while True:
+                # Find next 'v' if (current, v) is in arcs_used
+                next_vs = [v for (u, v) in arcs_used if u == current]
+                if not next_vs:
+                    # No continuation from current
+                    break
+                # Pick the first arc (assuming exactly one next node due to constraints)
+                v = next_vs[0]
+                route.append(v)
+                arcs_used.remove((current, v))
+                current = v
+                if current == start:
+                    # Loop closed
+                    break
+            return route

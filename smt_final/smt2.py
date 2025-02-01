@@ -2,7 +2,7 @@ from z3 import *
 from utils import *
 import time
 
-def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
+def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, symmetry, instance):
     # Start timing
     start_time = time.time()
     capacity = l
@@ -54,8 +54,11 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
     # 2) Capacity constraints
     ####################################
     for i in range(m):
-        solver.add(Sum([If(x[i, j, k], s[j], 0) for j in range(n) for k in range(n)]) <= l[i])
+        solver.add(Sum([If(x[i, j, k], s[j], 0) for j in range(n) for k in range(1)]) <= l[i])
 
+    for i in range(m):
+        for k in range(n):
+            solver.add(Sum([If(x[i, j, k], 1, 0) for j in range(n)]) <= 1)
     ####################################
     # 3) Symmetry Breaking Constraints
     ####################################
@@ -93,24 +96,20 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
     ####################################
     # 5) Distance calculation
     ####################################
+    # 5) Distance calculation (Optimized)
     for i in range(m):
-        # Initialize distance terms
-        distance_terms = []
-        
-        # Distance from origin to first item
-        distance_terms += [If(x[i, j, 0], D_matrix[origin][j], 0) for j in range(n)]
-        
-        # Distance between consecutive items
-        for k in range(n - 1):
-            for j in range(n):
-                for l in range(n):
-                    distance_terms.append(If(And(x[i, j, k], x[i, l, k + 1]), D_matrix[j][l], 0))
-        
-        # Distance from last item to origin
-        distance_terms += [If(x[i, j, n - 1], D_matrix[j][origin], 0) for j in range(n)]
-        
-        # Define distance_i[i]
-        solver.add(distance_i[i] == Sum(distance_terms))
+        # Distance calculation using compact and efficient summation
+        solver.add(
+            distance_i[i] == Sum([
+                If(x[i, j, 0], D_matrix[origin][j], 0) for j in range(n)  # Origin to first item
+            ]) + Sum([
+                If(x[i, j, k] & x[i, l, k + 1], D_matrix[j][l], 0) 
+                for j in range(n) for l in range(n) for k in range(n - 1)  # Between consecutive items
+            ]) + Sum([
+                If(x[i, j, n - 1], D_matrix[j][origin], 0) for j in range(n)  # Last item to origin
+            ])
+        )
+
 
     ####################################
     # 6) Bound each courier's distance by D
@@ -131,8 +130,8 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
     # 8) Objective: minimize D
     ####################################
     # Set a 5-minute timeout (300,000 milliseconds)
-    # solver.set(timeout=300000)
-    # obj = solver.minimize(D)
+    solver.set(timeout=300000)
+    obj = solver.minimize(D)
 
     # We'll set M to n (the total number of items).
     M = n
@@ -165,8 +164,10 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
 
     # Solve
     result = solver.check()
-    end_time = time.time()  # Move this outside the if-else block
-
+    end_time = time.time()
+    time_total = int(end_time - start_time)
+    model_name = f"SMT3D{'_symmetry' if symmetry else ''}"
+    assigned_matrix = []
     if result == sat:
         print("Solution is SAT. Optimal or near-optimal solution found.")
         model = solver.model()
@@ -181,14 +182,13 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
         for i in range(m):
             print(f"=== Courier {i} ===")
             
-            assigned_matrix = []
+            
             # ---- 1) Which items are assigned to courier i?
             assigned_items = []
             for j in range(n):
                 for k in range(n):
                     if model.evaluate(x[i, j, k], model_completion=True):
                         assigned_items.append((j, k))
-            assigned_matrix.append(assigned_items)
             # Sort assigned items by position
             assigned_items_sorted = sorted(assigned_items, key=lambda x: x[1])
             sorted_items = [item for (item, pos) in assigned_items_sorted]
@@ -197,6 +197,11 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
             load_i = sum(s[j] for j in sorted_items)
             print(f"Assigned items (sorted by position) = {sorted_items}")
             print(f"Total load = {load_i} (capacity = {capacity[i]})")
+
+            sorted_loads = []
+            for idx, item in enumerate(sorted_items):
+                sorted_loads.append(item+1)
+            assigned_matrix.append(sorted_loads)
             
             # ---- 2) Distance traveled
             dist_val = model.evaluate(distance_i[i], model_completion=True)
@@ -231,21 +236,61 @@ def run_model_3d(m, n, l, s, D_matrix, ITEMS, origin, instance, symmetry):
         
         # Print total time taken
         print(f"Total time taken: {end_time - start_time} seconds")
-        time_total = end_time-start_time
-        print(end_time-start_time)
-        model_name = f"SMT2D{'_symmetry' if symmetry else ''}"
+        
+        
         final_dict = {
-            model_name : {
-                "time": time_total,
-                "optimal": True,
-                "obj": D_val.as_string(),
-                "sol": assigned_matrix
-            }
+            "time": time_total,
+            "optimal": True,
+            "obj": int(D_val.as_string()),
+            "sol": assigned_matrix
         }
         print(final_dict)
-        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{instance}.json", "res/SMT")
+        save_json(final_dict, model_name, f"{int(instance)}.json", "res/SMT")
         
     else:
         print("No solution or UNSAT.")
-        # Print total time taken even if no solution
-        print(f"Total time taken: {end_time - start_time} seconds")
+        model = solver.model()
+        D_val = model.evaluate(D, model_completion=True)
+    # ---- Reconstruct the route using y variables
+        arcs = []
+        for u_node in range(n + 1):
+            for v_node in range(n + 1):
+                if model.evaluate(y[i, u_node, v_node], model_completion=True):
+                    arcs.append((u_node, v_node))
+        
+        arcs_used = set(arcs)
+        
+        if not arcs:
+            print("No route found for this courier.")
+            assigned_matrix.append([])
+        else:
+            # Reconstruct the route starting from origin
+            route = follow_loop(origin, arcs_used)
+            
+            # Print the reconstructed route
+            route_str = " -> ".join(
+                ("Origin" if node == origin else f"Item {node}") for node in route
+            )
+            print(f"Route: {route_str}")
+            
+            # ---- Extract ordered items based on the route
+            # Exclude the origin from the items list
+            ordered_items = [node for node in route if node != origin]
+            print(f"Ordered Assigned Items: {ordered_items}")
+
+            # ---- Compute the total load based on ordered items
+            # Assuming items are 1-based in 'ordered_items' and 0-based in 's'
+            load_i = sum(s[node - 1] for node in ordered_items)
+            print(f"Total Load = {load_i} (Capacity = {l[i]})")
+            
+            # ---- Append the ordered list to assigned_matrix
+            assigned_matrix.append(ordered_items)
+
+        final_dict = {
+                "time": 300,
+                "optimal": False,
+                "obj": int(D_val.as_string()),
+                "sol": assigned_matrix
+            }
+        print(final_dict)
+        save_json(final_dict, model_name, f"{int(instance)}.json", "res/SMT")

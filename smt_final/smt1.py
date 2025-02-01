@@ -167,38 +167,23 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry, instance):
 
     # Solve
     result = solver.check()
+    end_time = time.time()
+    time_total = int(end_time - start_time)
     assigned_matrix = []
     if result == sat:
-        print("Solution is SAT. Optimal or near-optimal solution found.")
+        print(f"Instance {instance}: Solution is SAT. Optimal or near-optimal solution found.")
         model = solver.model()
         
         # Retrieve the minimized D
         D_val = model.evaluate(D, model_completion=True)
-        print(f"Minimum possible maximum distance (D) = {D_val}")
-        print("")
+        print(f"Instance {instance}: Minimum possible maximum distance (D) = {D_val}")
         
         origin = n  # Recall we used 'n' as the origin index
-        
+        assigned_matrix = []
         for i in range(m):
             print(f"=== Courier {i} ===")
             
-            # ---- 1) Which items are assigned to courier i?
-            assigned_items = []
-            for j in range(n):
-                if model.evaluate(x[i, j], model_completion=True):
-                    assigned_items.append(j)
-            
-            # Compute the total load
-            load_i = sum(s[j] for j in assigned_items)
-            print(f"Assigned items = {assigned_items}")
-            print(f"Total load = {load_i} (capacity = {l[i]})")
-            assigned_matrix.append([item +1 for item in assigned_items])
-            
-            # ---- 2) Distance traveled
-            dist_val = model.evaluate(distance_i[i], model_completion=True)
-            print(f"Distance traveled = {dist_val}")
-            
-            # ---- 3) Reconstruct the route(s)
+            # ---- Reconstruct the route(s)
             # Gather all arcs y[i,u,v] that are True in the model
             arcs = []
             for u_node in range(n+1):
@@ -206,89 +191,99 @@ def run_model_2d(m, n, l, s, D_matrix, ITEMS, origin, symmetry, instance):
                     if model.evaluate(y[i, u_node, v_node], model_completion=True):
                         arcs.append((u_node, v_node))
             
-            # We might have multiple loops if sub-tours exist. Let's find them all.
             arcs_used = set(arcs)
             
-            # A function to follow arcs from a start until we return or run out
-            def follow_loop(start, arcs_used):
-                route = [start]
-                current = start
-                while True:
-                    # Find next 'v' if (current, v) is in arcs_used
-                    next_vs = [v for (u, v) in arcs_used if u == current]
-                    if len(next_vs) == 0:
-                        # no continuation from current
-                        break
-                    # pick the first arc (there should typically be exactly 1 if no sub-subtour branching)
-                    v = next_vs[0]
-                    route.append(v)
-                    arcs_used.remove((current, v))
-                    current = v
-                    if current == start:
-                        # loop closed
-                        break
-                return route
-            
-            # NEW: If assigned_items is empty => no route
-            if len(assigned_items) == 0:
+            if len(arcs) == 0:
                 print("No route (courier may have 0 items).")
+                # Since all couriers must have at least one item, this should not occur
+                assigned_matrix.append([])
             else:
-                # Exactly one route from origin -> ... -> origin
+                # Reconstruct the route
                 loop = follow_loop(origin, arcs_used)
                 
-                # Convert numeric indices to strings
+                # Print the route
                 route_str = " -> ".join(
                     ("origin" if node == origin else f"d{node}")
                     for node in loop
                 )
                 print(f"Route: {route_str}")
+                
+                # ---- 1) Extract ordered items based on the route
+                # Exclude the origin (assuming origin is 'n')
+                # Items are numbered from 0 to n-1, origin is n
+                ordered_items = []
+                for node in loop:
+                    if node != origin:
+                        ordered_items.append(node + 1)  # Adjust if you want 1-based indexing
+                print(f"Ordered items = {ordered_items}")
+                
+                # ---- 2) Compute the total load based on ordered items
+                # Note: ordered_items contains 1-based indices, so subtract 1 for 0-based access
+                load_i = sum(s[node - 1] for node in ordered_items)
+                print(f"Total load = {load_i} (capacity = {l[i]})")
+                
+                # ---- 3) Append the ordered list to assigned_matrix
+                assigned_matrix.append(ordered_items)
+            
         
-            print("")  # blank line
-        end_time = time.time()
-        time_total = end_time-start_time
+        print(f"Instance {instance}: Total Time = {time_total} seconds")
+        
+        print("")  # blank line
         final_dict = {
-            model_name : {
                 "time": time_total,
                 "optimal": True,
                 "obj": int(D_val.as_string()),
                 "sol": assigned_matrix
             }
-        }
+        
         print(final_dict)
-        print(type(instance))
         save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
     else:
         print("No solution or UNSAT.")
-        end_time = time.time()
-        time_total = end_time-start_time
 
-        for i in range(m):
-            print(f"=== Courier {i} ===")
-            print(result)
-            model = solver.model()
-            print(model)
-            print(solver.upper(obj))
-            D_val = model.evaluate(D, model_completion=True)
-            print(D_val.as_string())
-            # ---- 1) Which items are assigned to courier i?
-            assigned_items = []
-            for j in range(n):
-                if model.evaluate(x[i, j], model_completion=True):
-                    assigned_items.append(j)
-            # Compute the total load
-            load_i = sum(s[j] for j in assigned_items)
-            print(f"Assigned items = {assigned_items}")
-            print(f"Total load = {load_i} (capacity = {l[i]})")
-            assigned_matrix.append([item +1 for item in assigned_items])
+        model = solver.model()
+        D_val = model.evaluate(D, model_completion=True)
+    # ---- Reconstruct the route using y variables
+        arcs = []
+        for u_node in range(n + 1):
+            for v_node in range(n + 1):
+                if model.evaluate(y[i, u_node, v_node], model_completion=True):
+                    arcs.append((u_node, v_node))
+        
+        arcs_used = set(arcs)
+        
+        if not arcs:
+            print("No route found for this courier.")
+            assigned_matrix.append([])
+        else:
+            # Reconstruct the route starting from origin
+            route = follow_loop(origin, arcs_used)
+            
+            # Print the reconstructed route
+            route_str = " -> ".join(
+                ("Origin" if node == origin else f"Item {node}") for node in route
+            )
+            print(f"Route: {route_str}")
+            
+            # ---- Extract ordered items based on the route
+            # Exclude the origin from the items list
+            ordered_items = [node for node in route if node != origin]
+            print(f"Ordered Assigned Items: {ordered_items}")
+
+            # ---- Compute the total load based on ordered items
+            # Assuming items are 1-based in 'ordered_items' and 0-based in 's'
+            load_i = sum(s[node - 1] for node in ordered_items)
+            print(f"Total Load = {load_i} (Capacity = {l[i]})")
+            
+            # ---- Append the ordered list to assigned_matrix
+            assigned_matrix.append(ordered_items)
 
         final_dict = {
-            model_name : {
-                "time": time_total,
+                "time": 300,
                 "optimal": False,
                 "obj": int(D_val.as_string()),
                 "sol": assigned_matrix
             }
-        }
         print(final_dict)
         save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
         
