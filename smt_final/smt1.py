@@ -237,7 +237,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
             }
         
         print(final_dict)
-        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
+        save_json(final_dict, model_name, f"{int(instance)}.json", "res/SMT")
     else:
         print("No solution or UNSAT.")
 
@@ -285,6 +285,6 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
                 "sol": assigned_matrix
             }
         print(final_dict)
-        save_json(final_dict, f"SMT2D{'_symmetry' if symmetry else ''}", f"{int(instance)}.json", "res/SMT")
+        save_json(final_dict, model_name, f"{int(instance)}.json", "res/SMT")
         
         

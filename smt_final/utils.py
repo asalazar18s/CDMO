@@ -44,52 +44,6 @@ def read_dat_file(filename):
     
     return num_couriers, num_load, courier_capacity, load_size, distance
 
-def build_single_route_from_origin(i, origin, arcs_used):
-    """
-    Follow arcs starting from 'origin' until we return to 'origin'
-    or can no longer proceed. Returns the route as a list of nodes.
-    """
-    route = [origin]
-    current = origin
-    while True:
-        # Find the next 'v' if (current, v) is in arcs_used
-        next_vs = [v_ for (u_, v_) in arcs_used if u_ == current]
-        if not next_vs:
-            # No continuation from current
-            break
-        v_ = next_vs[0]  # typically exactly 1 in a well-formed route
-        route.append(v_)
-        arcs_used.remove((current, v_))
-        current = v_
-        if current == origin:
-            # we made it back to origin => route complete
-            break
-    return route
-
-def rotate_loop_to_origin(loop, origin):
-    if origin in loop:
-        idx = loop.index(origin)
-        # rotate so that loop[idx] becomes the first element
-        loop = loop[idx:] + loop[:idx]
-    return loop
-
-def reconstruct_single_loop(i, origin, arcs_used):
-    # Start from origin, follow arcs until we return to origin
-    route = [origin]
-    current = origin
-    while True:
-        next_vs = [v for (u,v) in arcs_used if u == current]
-        if not next_vs:  # no continuation
-            break
-        v = next_vs[0]  # typically exactly 1
-        route.append(v)
-        arcs_used.remove((current, v))
-        current = v
-        if current == origin:
-            # route is complete
-            break
-    return route
-
 def compute_bounds(D_matrix, items):
     n = len(D_matrix) - 1  # Assuming origin is indexed at n
     # Compute lower bound
@@ -101,7 +55,6 @@ def compute_bounds(D_matrix, items):
     upper_bound = sum(max_distances[1:]) + max(D_matrix[n]) + max([D_matrix[j][n] for j in range(n)])
     
     return lower_bound, upper_bound
-
 
 def save_json(data_dict, solver_name, file_name, base_path):
 
