@@ -9,11 +9,11 @@ import re  # Import regex for parsing num_load
 # Define available solvers and models
 SOLVERS = ["gecode", "chuffed"]
 MODELS = {
-    "firstfail_indmin": "model/firstfail_indmin.mzn",
-    "firstfail_indmin_sb": "model/firstfail_indmin_sb.mzn",
-    "domwdeg_indrandom_sb": "model/domwdeg_indrandom_sb.mzn"
+    "firstfail_indmin": "cp1/model/firstfail_indmin.mzn",
+    "firstfail_indmin_sb": "cp1/model/firstfail_indmin_sb.mzn",
+    "domwdeg_indrandom_sb": "cp1/model/domwdeg_indrandom_sb.mzn"
 }
-RESULT_DIR = "results"
+RESULT_DIR = "res/CP/"
 
 def get_num_load(dzn_file):
     """Extract num_load from the .dzn file."""
@@ -52,6 +52,7 @@ def solve_minizinc(solver_name, model_path, instance_number):
             }
         depot_point = num_load + 1  # Set depot dynamically
 
+        print("MODEL PATH: ", model_path)
         # Load MiniZinc model
         model = minizinc.Model()
         model.add_file(model_path)
@@ -137,7 +138,7 @@ def process_instance(solver_name, model_name, instance_number):
 
     # Save result as JSON
     os.makedirs(RESULT_DIR, exist_ok=True)
-    output_file = os.path.join(RESULT_DIR, f"inst{instance_number}.json")
+    output_file = os.path.join(RESULT_DIR, f"{int(instance_number)}.json")
 
     with open(output_file, "w") as f:
         json.dump(result, f, indent=3)

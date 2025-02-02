@@ -26,8 +26,8 @@ var int: z = max(total_distance);
 % Lower bound: minimum distance from the base (num_load+1) to any load
 var int: lower_bound = min([distance[num_load+1, load] | load in 1..num_load]);
 
-% Upper bound: sum of distances between consecutive loads + the lower bound
-var int: upper_bound = sum([distance[load, load+1] | load in 1..num_load-1]) + lower_bound;
+%upper bound: the sum of distances between all pairs of loads + the lower bound
+var int: upper_bound = sum([distance[load, next_load] | load in 1..num_load, next_load in load+1..num_load+1]) + lower_bound;
 
 % Constraints
 

@@ -146,7 +146,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
         f.write(smt)
     # 13. Objective: minimize D
     solver.set(timeout=300000)
-    solver.minimize(D)
+    obj = solver.minimize(D)
     # Solve
     result = solver.check()
     total_time = int(time.time() - start_time)
