@@ -1,82 +1,42 @@
 {
-   "gecode_firstfail_indmin": {
-      "time": 0.200666,
-      "optimal": true,
-      "obj": 12,
-      "sol": [
-         [
-            3,
-            6,
-            5
-         ],
-         [
-            2,
-            4
-         ],
-         [
-            1,
-            7
-         ]
-      ]
-   },
-   "gecode_firstfail_indmin_sb": {
-      "time": 0.094061,
-      "optimal": true,
-      "obj": 12,
-      "sol": [
-         [
-            3,
-            6,
-            5
-         ],
-         [
-            4,
-            2
-         ],
-         [
-            7,
-            1
-         ]
-      ]
-   },
-   "gecode_domwdeg_indrandom_sb": {
-      "time": 0.012823,
-      "optimal": true,
-      "obj": 12,
-      "sol": [
-         [
-            3,
-            6,
-            5
-         ],
-         [
-            4,
-            2
-         ],
-         [
-            7,
-            1
-         ]
-      ]
-   },
-   "chuffed_firstfail_indmin_sb": {
-      "time": 0.015,
-      "optimal": true,
-      "obj": 12,
-      "sol": [
-         [
-            3,
-            6,
-            5
-         ],
-         [
-            4,
-            2
-         ],
-         [
-            7,
-            1
-         ]
-      ]
-   }
+  "gecode_firstfail_indmin": {
+    "time": 0,
+    "optimal": true,
+    "obj": 12,
+    "sol": [
+      [3, 6, 5],
+      [2, 4],
+      [1, 7]
+    ]
+  },
+  "gecode_firstfail_indmin_sb": {
+    "time": 0,
+    "optimal": true,
+    "obj": 12,
+    "sol": [
+      [3, 6, 5],
+      [4, 2],
+      [7, 1]
+    ]
+  },
+  "gecode_domwdeg_indrandom_sb": {
+    "time": 0,
+    "optimal": true,
+    "obj": 12,
+    "sol": [
+      [3, 6, 5],
+      [4, 2],
+      [7, 1]
+    ]
+  },
+  "chuffed_firstfail_indmin_sb": {
+    "time": 0,
+    "optimal": true,
+    "obj": 12,
+    "sol": [
+      [3, 6, 5],
+      [4, 2],
+      [7, 1]
+    ]
+  }
 }

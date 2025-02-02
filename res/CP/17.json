@@ -1,0 +1,26 @@
+{
+   "gecode_firstfail_indmin": {
+      "time": 0,
+      "optimal": false,
+      "obj": null,
+      "sol": []
+   },
+   "gecode_firstfail_indmin_sb": {
+      "time": 0,
+      "optimal": false,
+      "obj": null,
+      "sol": []
+   },
+   "gecode_domwdeg_indrandom_sb": {
+      "time": 0,
+      "optimal": false,
+      "obj": null,
+      "sol": []
+   },
+   "chuffed_firstfail_indmin_sb": {
+      "time": 0,
+      "optimal": false,
+      "obj": null,
+      "sol": []
+   }
+}
