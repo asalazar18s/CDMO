@@ -1,6 +1,6 @@
 {
    "gecode_firstfail_indmin": {
-      "time": 0.020581,
+      "time": 0.019765,
       "optimal": true,
       "obj": 14,
       "sol": [
@@ -17,7 +17,7 @@
       ]
    },
    "gecode_firstfail_indmin_sb": {
-      "time": 0.012509,
+      "time": 0.012649,
       "optimal": true,
       "obj": 14,
       "sol": [
@@ -34,7 +34,7 @@
       ]
    },
    "gecode_domwdeg_indrandom_sb": {
-      "time": 0.003925,
+      "time": 0.003057,
       "optimal": true,
       "obj": 14,
       "sol": [
