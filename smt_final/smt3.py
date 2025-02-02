@@ -179,13 +179,8 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
     solver.set(timeout=300000)
     objective = solver.minimize(D)
 
-    print(solver.sexpr())
-    # Capture the SMT2-like representation
-    smt2_str = solver.sexpr()
 
-    # Save to a .smt2 file
-    with open("model.smt2", "w") as f:
-        f.write(smt2_str)
+
     # Solve
     result = solver.check()
     total_time = int(time.time() - start_time)

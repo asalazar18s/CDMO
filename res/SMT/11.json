@@ -3,9 +3,7 @@
         "time": 300,
         "optimal": false,
         "obj": 0,
-        "sol": [
-            []
-        ]
+        "sol": "N/A"
     },
     "SMT3D": {
         "time": 300,

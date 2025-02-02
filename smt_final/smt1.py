@@ -9,7 +9,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     print(lower_bound, upper_bound)
 
     # Create an Optimize object
-    solver = Optimize()
+    solver = Solver()
 
     # Item-to-Courier Assignment Variables
     x = {}
@@ -74,6 +74,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
         assigned_count_i = Sum([If(x[i, j], 1, 0) for j in range(n)])
         # Enforce at least 1 item assigned to each courier
         solver.add(assigned_count_i >= 1)
+        
 
     # 6. Enforce courier must leave origin once and return once 
     for i in range(m):
@@ -139,6 +140,10 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     solver.add(D >= lower_bound)
     solver.add(D <= upper_bound)
 
+    smt = solver.to_smt2()
+
+    with open("m2.smt2", "w") as f:
+        f.write(smt)
     # 13. Objective: minimize D
     solver.set(timeout=300000)
     solver.minimize(D)
