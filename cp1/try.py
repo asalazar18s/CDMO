@@ -52,7 +52,6 @@ def solve_minizinc(solver_name, model_path, instance_number):
             }
         depot_point = num_load + 1  # Set depot dynamically
 
-        print("MODEL PATH: ", model_path)
         # Load MiniZinc model
         model = minizinc.Model()
         model.add_file(model_path)
