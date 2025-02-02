@@ -5,15 +5,16 @@ import traceback
 import datetime
 import sys
 import re  # Import regex for parsing num_load
+import math
 
 # Define available solvers and models
 SOLVERS = ["gecode", "chuffed"]
 MODELS = {
-    "firstfail_indmin": "model/firstfail_indmin.mzn",
-    "firstfail_indmin_sb": "model/firstfail_indmin_sb.mzn",
-    "domwdeg_indrandom_sb": "model/domwdeg_indrandom_sb.mzn"
+    "firstfail_indmin": "cp1/model/firstfail_indmin.mzn",
+    "firstfail_indmin_sb": "cp1/model/firstfail_indmin_sb.mzn",
+    "domwdeg_indrandom_sb": "cp1/model/domwdeg_indrandom_sb.mzn"
 }
-RESULT_DIR = "results"
+RESULT_DIR = "res/CP/"
 
 def get_num_load(dzn_file):
     """Extract num_load from the .dzn file."""
@@ -70,7 +71,7 @@ def solve_minizinc(solver_name, model_path, instance_number):
         # Extract solve time
         solve_time = result.statistics.get("solveTime", 0)
         solve_time = solve_time / 1000.0 if isinstance(solve_time, int) else solve_time.total_seconds()
-
+        solve_time = math.floor(solve_time)
         # Extract and clean solution
         solution_data = []
         if result.solution is not None and hasattr(result.solution, "load_assigned"):
@@ -137,7 +138,7 @@ def process_instance(solver_name, model_name, instance_number):
 
     # Save result as JSON
     os.makedirs(RESULT_DIR, exist_ok=True)
-    output_file = os.path.join(RESULT_DIR, f"inst{instance_number}.json")
+    output_file = os.path.join(RESULT_DIR, f"{int(instance_number)}.json")
 
     with open(output_file, "w") as f:
         json.dump(result, f, indent=3)

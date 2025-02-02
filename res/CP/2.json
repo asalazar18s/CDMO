@@ -1,0 +1,26 @@
+{
+  "gecode_firstfail_indmin": {
+    "time": 98.6524,
+    "optimal": true,
+    "obj": 226,
+    "sol": [[1, 4], [2, 3], [5, 7], [6], [8], [9]]
+  },
+  "gecode_firstfail_indmin_sb": {
+    "time": 0.375893,
+    "optimal": true,
+    "obj": 226,
+    "sol": [[1, 4], [2, 3], [5, 9], [6], [7], [8]]
+  },
+  "gecode_domwdeg_indrandom_sb": {
+    "time": 1.06539,
+    "optimal": true,
+    "obj": 226,
+    "sol": [[1, 4], [5], [6], [7, 2, 3], [8], [9]]
+  },
+  "chuffed_firstfail_indmin_sb": {
+    "time": 0.079,
+    "optimal": true,
+    "obj": 226,
+    "sol": [[1, 4], [2], [3], [5, 9], [6, 8], [7]]
+  }
+}

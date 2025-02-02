@@ -1,0 +1,26 @@
+{
+  "SMT2D": {
+    "time": 0,
+    "optimal": true,
+    "obj": 322,
+    "sol": [[5], [4], [3, 2], [8, 1], [6], [7]]
+  },
+  "SMT3D": {
+    "time": 41,
+    "optimal": true,
+    "obj": 322,
+    "sol": [[7], [3, 4], [6], [2], [8], [5, 1]]
+  },
+  "SMT2D_symmetry": {
+    "time": 0,
+    "optimal": true,
+    "obj": 322,
+    "sol": [[1], [2], [3], [6], [4, 5], [8, 7]]
+  },
+  "SMT3D_symmetry": {
+    "time": 7,
+    "optimal": true,
+    "obj": 322,
+    "sol": [[1, 8], [2, 5], [3], [4], [6], [7]]
+  }
+}
