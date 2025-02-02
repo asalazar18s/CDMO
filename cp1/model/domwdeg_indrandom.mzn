@@ -28,6 +28,7 @@ var int: lower_bound = min([distance[num_load+1, load] | load in 1..num_load]);
 %upper bound: the sum of distances between all pairs of loads + the lower bound
 var int: upper_bound = sum([distance[load, next_load] | load in 1..num_load, next_load in load+1..num_load+1]) + lower_bound;
 
+
 % Constraints
 
 % Each load must go to one courier and be picked up only once
@@ -69,11 +70,11 @@ constraint
     forall(courier in 1..num_couriers)(
         exists(load in 2..num_load+1)(load_assigned[courier, load] != num_load+1)
     );
-    
+
 % Constraint for the total distance (z) to lie within the defined bounds
 constraint
     z >= lower_bound /\ z <= upper_bound;
-
+    
 solve :: int_search([load_assigned[courier, pos] | courier in 1..num_couriers, pos in 2..num_load+1], dom_w_deg, indomain_random) minimize z;
 
 % Output: Route for each courier and the corresponding total distance
