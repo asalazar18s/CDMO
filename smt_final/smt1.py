@@ -9,7 +9,7 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
     print(lower_bound, upper_bound)
 
     # Create an Optimize object
-    solver = Solver()
+    solver = Optimize()
 
     # Item-to-Courier Assignment Variables
     x = {}
@@ -134,16 +134,12 @@ def run_model_2d(m, n, l, s, D_matrix, origin, symmetry, instance):
                     # If courier i travels j->k, then:
                     # u[i, k] >= u[i, j] + 1 - M*(1 - y[i, j, k])
                     solver.add(u[i, k] >= u[i, j] + 1 - n * (1 - If(y[i, j, k], 1, 0))
-)
+    )
 
     # 12. Integrate Lower and Upper Bounds
     solver.add(D >= lower_bound)
     solver.add(D <= upper_bound)
 
-    smt = solver.to_smt2()
-
-    with open("m2.smt2", "w") as f:
-        f.write(smt)
     # 13. Objective: minimize D
     solver.set(timeout=300000)
     obj = solver.minimize(D)

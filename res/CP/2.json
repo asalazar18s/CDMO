@@ -1,5 +1,5 @@
 {
-  "gecode_firstfail_indmin": {
+  "gecode_domwdeg_indrandom": {
     "time": 98,
     "optimal": true,
     "obj": 226,

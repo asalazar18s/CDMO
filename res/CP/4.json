@@ -1,9 +1,9 @@
 {
-  "gecode_firstfail_indmin": {
+  "gecode_domwdeg_indrandom": {
     "time": 299,
     "optimal": false,
-    "obj": null,
-    "sol": []
+    "obj": 220,
+    "sol": [[6, 3], [10, 2], [1], [8], [4], [7], [9], [5]]
   },
   "gecode_firstfail_indmin_sb": {
     "time": 16,

@@ -1,107 +1,26 @@
 {
-   "gecode_firstfail_indmin": {
-      "time": 299,
-      "optimal": false,
-      "obj": null,
-      "sol": []
-   },
-   "gecode_firstfail_indmin_sb": {
-      "time": 15,
-      "optimal": true,
-      "obj": 186,
-      "sol": [
-         [
-            1,
-            2
-         ],
-         [
-            3
-         ],
-         [
-            4
-         ],
-         [
-            5
-         ],
-         [
-            6,
-            10
-         ],
-         [
-            7
-         ],
-         [
-            8
-         ],
-         [
-            9
-         ]
-      ]
-   },
-   "gecode_domwdeg_indrandom_sb": {
-      "time": 0,
-      "optimal": true,
-      "obj": 186,
-      "sol": [
-         [
-            1
-         ],
-         [
-            2,
-            7
-         ],
-         [
-            3
-         ],
-         [
-            4
-         ],
-         [
-            5
-         ],
-         [
-            8
-         ],
-         [
-            9
-         ],
-         [
-            10,
-            6
-         ]
-      ]
-   },
-   "chuffed_firstfail_indmin_sb": {
-      "time": 0,
-      "optimal": true,
-      "obj": 186,
-      "sol": [
-         [
-            1
-         ],
-         [
-            2,
-            10
-         ],
-         [
-            3
-         ],
-         [
-            4
-         ],
-         [
-            5
-         ],
-         [
-            6
-         ],
-         [
-            7,
-            9
-         ],
-         [
-            8
-         ]
-      ]
-   }
+  "gecode_domwdeg_indrandom": {
+    "time": 207,
+    "optimal": true,
+    "obj": 186,
+    "sol": [[6], [3], [10, 5], [1], [9], [7, 8], [4], [2]]
+  },
+  "gecode_firstfail_indmin_sb": {
+    "time": 15,
+    "optimal": true,
+    "obj": 186,
+    "sol": [[1, 2], [3], [4], [5], [6, 10], [7], [8], [9]]
+  },
+  "gecode_domwdeg_indrandom_sb": {
+    "time": 0,
+    "optimal": true,
+    "obj": 186,
+    "sol": [[1], [2, 7], [3], [4], [5], [8], [9], [10, 6]]
+  },
+  "chuffed_firstfail_indmin_sb": {
+    "time": 0,
+    "optimal": true,
+    "obj": 186,
+    "sol": [[1], [2, 10], [3], [4], [5], [6], [7, 9], [8]]
+  }
 }
