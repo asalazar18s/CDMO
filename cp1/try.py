@@ -111,15 +111,23 @@ def process_instance(solver_name, model_name, instance_number):
     if solver_name == "all" and model_name == "all":
         for solver in SOLVERS:
             for model, model_path in MODELS.items():
-                if solver == "chuffed" and model != "firstfail_indmin_sb":
+                if solver == "chuffed" and model not in ["firstfail_indmin_sb", "firstfail_indmin"]:
                     continue
                 
                 key = f"{solver}_{model}"
                 result[key] = solve_minizinc(solver, model_path, instance_number)
 
+        # Add chuffed with firstfail_indmin explicitly
+        solver = "chuffed"
+        model = "firstfail_indmin"
+        model_path = MODELS.get(model)
+        if model_path:
+            key = f"{solver}_{model}"
+            result[key] = solve_minizinc(solver, model_path, instance_number)
+
     elif solver_name == "all":
         for solver in SOLVERS:
-            if solver == "chuffed" and model_name != "firstfail_indmin_sb":
+            if solver == "chuffed" and model_name not in ["firstfail_indmin_sb", "firstfail_indmin"]:
                 continue
 
             key = f"{solver}_{model_name}"
@@ -127,7 +135,7 @@ def process_instance(solver_name, model_name, instance_number):
 
     elif model_name == "all":
         for model, model_path in MODELS.items():
-            if solver_name == "chuffed" and model != "firstfail_indmin_sb":
+            if solver_name == "chuffed" and model not in ["firstfail_indmin_sb", "firstfail_indmin"]:
                 continue
 
             key = f"{solver_name}_{model}"
@@ -145,6 +153,7 @@ def process_instance(solver_name, model_name, instance_number):
 
     print(f"Processed instance {instance_number}, result saved to {output_file}")
     print(json.dumps(result, indent=3))
+
 
 def process_all_instances(solver_name, model_name):
     """Run all available instances in the converted_instances directory."""
