@@ -12,7 +12,7 @@ SOLVERS = ["gecode", "chuffed"]
 MODELS = {
     "firstfail_indmin": "cp1/model/firstfail_indmin.mzn",
     "firstfail_indmin_sb": "cp1/model/firstfail_indmin_sb.mzn",
-    "domwdeg_indrandom_sb": "cp1/model/domwdeg_indrandom_sb.mzn"
+    "domwdeg_indrandom_sb": "cp1/model/domwdeg_indrandom_sb.mzn",
     "domwdeg_indrandom": "cp1/model/domwdeg_indrandom.mzn"
 }
 RESULT_DIR = "res/CP/"
