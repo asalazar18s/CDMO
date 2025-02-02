@@ -110,13 +110,17 @@ def process_instance(solver_name, model_name, instance_number):
 
     # Handle "all models and solvers" case
     if solver_name == "all" and model_name == "all":
+        # For GeCode, use the specific models
         for solver in SOLVERS:
             if solver == "gecode":
-                # GeCode should run for the models you specified
-                models_to_run = ["domwdeg_indrandom", "firstfail_indmin_sb", "domwdeg_indrandom_sb"]
+                models_to_run = [
+                    "domwdeg_indrandom", 
+                    "firstfail_indmin_sb", 
+                    "domwdeg_indrandom_sb"
+                ]
             elif solver == "chuffed":
-                # Chuffed should run only for the specified models
-                models_to_run = ["firstfail_indmin", "firstfail_indmin_sb"]
+                # For Chuffed, only use firstfail_indmin_sb model
+                models_to_run = ["firstfail_indmin_sb"]
             else:
                 models_to_run = []
 
@@ -126,7 +130,7 @@ def process_instance(solver_name, model_name, instance_number):
                     key = f"{solver}_{model}"
                     result[key] = solve_minizinc(solver, model_path, instance_number)
 
-        # Add chuffed with firstfail_indmin explicitly
+        # Explicitly add chuffed with firstfail_indmin
         solver = "chuffed"
         model = "firstfail_indmin"
         model_path = MODELS.get(model)
@@ -135,11 +139,16 @@ def process_instance(solver_name, model_name, instance_number):
             result[key] = solve_minizinc(solver, model_path, instance_number)
 
     elif solver_name == "all":
+        # Handle case where solver is "all" but specific model is provided
         for solver in SOLVERS:
             if solver == "gecode":
-                models_to_run = ["domwdeg_indrandom", "firstfail_indmin_sb", "domwdeg_indrandom_sb"]
+                models_to_run = [
+                    "domwdeg_indrandom", 
+                    "firstfail_indmin_sb", 
+                    "domwdeg_indrandom_sb"
+                ]
             elif solver == "chuffed":
-                models_to_run = ["firstfail_indmin", "firstfail_indmin_sb"]
+                models_to_run = ["firstfail_indmin_sb"]
             else:
                 models_to_run = []
 
@@ -150,6 +159,7 @@ def process_instance(solver_name, model_name, instance_number):
                     result[key] = solve_minizinc(solver, model_path, instance_number)
 
     elif model_name == "all":
+        # Handle case where model is "all" but specific solver is provided
         for model, model_path in MODELS.items():
             if solver_name == "chuffed" and model not in ["firstfail_indmin_sb", "firstfail_indmin"]:
                 continue
@@ -158,6 +168,7 @@ def process_instance(solver_name, model_name, instance_number):
             result[key] = solve_minizinc(solver_name, model_path, instance_number)
 
     else:
+        # Handle the case for specific solver and model
         result = solve_minizinc(solver_name, MODELS[model_name], instance_number)
 
     # Save result as JSON
@@ -169,7 +180,6 @@ def process_instance(solver_name, model_name, instance_number):
 
     print(f"Processed instance {instance_number}, result saved to {output_file}")
     print(json.dumps(result, indent=3))
-
 
 
 def process_all_instances(solver_name, model_name):
