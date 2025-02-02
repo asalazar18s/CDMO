@@ -130,13 +130,6 @@ def process_instance(solver_name, model_name, instance_number):
                     key = f"{solver}_{model}"
                     result[key] = solve_minizinc(solver, model_path, instance_number)
 
-        # Explicitly add chuffed with firstfail_indmin
-        solver = "chuffed"
-        model = "firstfail_indmin"
-        model_path = MODELS.get(model)
-        if model_path:
-            key = f"{solver}_{model}"
-            result[key] = solve_minizinc(solver, model_path, instance_number)
 
     elif solver_name == "all":
         # Handle case where solver is "all" but specific model is provided
