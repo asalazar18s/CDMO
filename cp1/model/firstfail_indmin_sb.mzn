@@ -81,7 +81,7 @@ constraint
         load_assigned[courier, 2..num_load+1] <= load_assigned[courier + 1, 2..num_load+1]
     );
 
-solve :: int_search([load_assigned[courier, pos] | courier in 1..num_couriers, pos in 2..num_load+1], dom_w_deg, indomain_random) minimize z;
+solve :: int_search([load_assigned[courier, pos] | courier in 1..num_couriers, pos in 2..num_load+1], first_fail, indomain_min) minimize z;
 
 % Output: Route for each courier and the corresponding total distance
 output [
