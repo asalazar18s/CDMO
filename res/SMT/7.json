@@ -1,26 +1,30 @@
 {
-  "SMT2D": {
-    "time": 300,
-    "optimal": false,
-    "obj": 250,
-    "sol": "N/A"
-  },
-  "SMT3D": {
-    "time": 300,
-    "optimal": false,
-    "obj": 0,
-    "sol": "N/A"
-  },
-  "SMT2D_symmetry": {
-    "time": 300,
-    "optimal": false,
-    "obj": 288,
-    "sol": "N/A"
-  },
-  "SMT3D_symmetry": {
-    "time": 300,
-    "optimal": false,
-    "obj": 0,
-    "sol": "N/A"
-  }
+    "SMT2D": {
+        "time": 300,
+        "optimal": false,
+        "obj": 305,
+        "sol": [
+            [
+                14
+            ]
+        ]
+    },
+    "SMT3D": {
+        "time": 300,
+        "optimal": false,
+        "obj": 0,
+        "sol": "N/A"
+    },
+    "SMT2D_symmetry": {
+        "time": 300,
+        "optimal": false,
+        "obj": 288,
+        "sol": "N/A"
+    },
+    "SMT3D_symmetry": {
+        "time": 300,
+        "optimal": false,
+        "obj": 0,
+        "sol": "N/A"
+    }
 }
