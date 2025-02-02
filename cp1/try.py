@@ -4,7 +4,7 @@ import minizinc
 import traceback
 import datetime
 import sys
-import re  # Import regex for parsing num_load
+import re
 import math
 
 # Define available solvers and models
@@ -15,6 +15,7 @@ MODELS = {
     "domwdeg_indrandom_sb": "cp1/model/domwdeg_indrandom_sb.mzn"
 }
 RESULT_DIR = "res/CP/"
+INSTANCE_DIR = "converted_instances/"
 
 def get_num_load(dzn_file):
     """Extract num_load from the .dzn file."""
@@ -30,7 +31,7 @@ def get_num_load(dzn_file):
 
 def solve_minizinc(solver_name, model_path, instance_number):
     try:
-        dzn_file = f"converted_instances/inst{instance_number}.dzn"
+        dzn_file = f"{INSTANCE_DIR}inst{instance_number}.dzn"
 
         if not os.path.exists(dzn_file):
             return {
@@ -41,7 +42,6 @@ def solve_minizinc(solver_name, model_path, instance_number):
                 "error": f"ERROR: {dzn_file} file not found!"
             }
 
-        # Determine the depot dynamically
         num_load = get_num_load(dzn_file)
         if num_load is None:
             return {
@@ -58,7 +58,6 @@ def solve_minizinc(solver_name, model_path, instance_number):
         model.add_file(model_path)
         solver = minizinc.Solver.lookup(solver_name)
 
-        # Create an instance
         instance = minizinc.Instance(solver, model)
         instance.add_file(dzn_file)
 
@@ -72,11 +71,12 @@ def solve_minizinc(solver_name, model_path, instance_number):
         solve_time = result.statistics.get("solveTime", 0)
         solve_time = solve_time / 1000.0 if isinstance(solve_time, int) else solve_time.total_seconds()
         solve_time = math.floor(solve_time)
+
         # Extract and clean solution
         solution_data = []
         if result.solution is not None and hasattr(result.solution, "load_assigned"):
             solution_data = [
-                [x for x in group if x != depot_point]  # Remove depot dynamically
+                [x for x in group if x != depot_point]  
                 for group in result.solution.load_assigned
             ]
 
@@ -146,33 +146,51 @@ def process_instance(solver_name, model_name, instance_number):
     print(f"Processed instance {instance_number}, result saved to {output_file}")
     print(json.dumps(result, indent=3))
 
+def process_all_instances(solver_name, model_name):
+    """Run all available instances in the converted_instances directory."""
+    if not os.path.exists(INSTANCE_DIR):
+        print(f"Error: Instance directory '{INSTANCE_DIR}' not found.")
+        return
+
+    # Get all instance files
+    instance_files = sorted(
+        [f for f in os.listdir(INSTANCE_DIR) if f.startswith("inst") and f.endswith(".dzn")]
+    )
+
+    if not instance_files:
+        print("Error: No instances found in the converted_instances directory.")
+        return
+
+    for instance_file in instance_files:
+        instance_number = re.search(r"inst(\d+)\.dzn", instance_file).group(1)
+        process_instance(solver_name, model_name, instance_number)
+
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: python try.py [solver] [model] [instance_number]")
+    if len(sys.argv) < 3:
+        print("Usage: python try.py [solver] [model] [instance_number/all]")
         print("Example: python try.py gecode firstfail_indmin 01")
         print("Use 'all' for solver and/or model to run all available options.")
+        print("Use 'all' as instance_number to run all instances.")
         sys.exit(1)
 
     solver_arg = sys.argv[1].lower()
     model_arg = sys.argv[2].lower()
-    instance_arg = sys.argv[3]
+    instance_arg = sys.argv[3].lower()
 
-    # Validate solver
     if solver_arg != "all" and solver_arg not in SOLVERS:
         print(f"Error: Invalid solver '{solver_arg}'. Choose from {SOLVERS} or 'all'.")
         sys.exit(1)
 
-    # Validate model
     if model_arg != "all" and model_arg not in MODELS:
         print(f"Error: Invalid model '{model_arg}'. Choose from {list(MODELS.keys())} or 'all'.")
         sys.exit(1)
 
-    # Validate instance number
-    if not instance_arg.isdigit() or int(instance_arg) < 1:
-        print("Error: Instance number must be a positive integer.")
-        sys.exit(1)
+    if instance_arg == "all":
+        process_all_instances(solver_arg, model_arg)
+    else:
+        if not instance_arg.isdigit() or int(instance_arg) < 1:
+            print("Error: Instance number must be a positive integer.")
+            sys.exit(1)
 
-    # Format instance number correctly (01, 02, ..., 10, 11, etc.)
-    instance_number = f"{int(instance_arg):02d}"
-
-    process_instance(solver_arg, model_arg, instance_number)
+        instance_number = f"{int(instance_arg):02d}"
+        process_instance(solver_arg, model_arg, instance_number)
