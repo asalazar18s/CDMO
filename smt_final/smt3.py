@@ -214,7 +214,3 @@ def run_model_3d(m, n, l, s, D_matrix, origin, symmetry, instance):
             }
         print(final_dict)
         save_json(final_dict, model_name, f"{int(instance)}.json", "res/SMT")
-
-
-# m, n, l, s, D_matrix = read_dat_file('/Users/aaronsalazar/LocalDocs/Bologna/CDMO/Instances/inst02.dat')
-# run_model_3d(m,n,l,s,D_matrix, n, symmetry=False, instance=2)
